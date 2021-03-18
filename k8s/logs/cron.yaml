@@ -1,0 +1,20 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: clean-k8s-log
+  namespace: kube-system
+spec:
+  schedule: "* * */1 * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: clean-k8s-log
+            image: cr.speakin.mobi/baseimg/tools:v1.0
+            imagePullPolicy: IfNotPresent
+            args:
+            - /bin/sh
+            - -c
+            - curl -XDELETE http://outside-es.szjz.svc.cluster.local:9200/k8s-`date +%Y.%m.%d -d '-3 days'` && sleep 100 && kubectl delete  -n kube-system $(kubectl get pods -n kube-system -o name  |grep clean)
+          restartPolicy: Never

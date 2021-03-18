@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      run: kibana
+  template:
+    metadata:
+      labels:
+        run: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: cr.speakin.mobi/k8s/kibana:7.5.1
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: http://outside-es.szjz.svc.cluster.local:9200
+          #value: http://elasticsearch:9200
+          #value: http://elasticsearch.monitor.svc.cluster.local:9200
+        #- name: XPACK_SECURITY_ENABLED
+        #  value: "true"
+        ports:
+        - containerPort: 5601
+          name: http
+          protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: kube-system
+  labels:
+    service: kibana
+spec:
+  type: NodePort
+  selector:
+    run: kibana
+  ports:
+  - port: 5601
+    targetPort: 5601
+    nodePort: 25601
