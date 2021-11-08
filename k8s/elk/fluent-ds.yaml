@@ -30,8 +30,8 @@ spec:
           - containerPort: 2020
         env:
         - name: FLUENT_ELASTICSEARCH_HOST
-          #value: "elasticsearch.monitor.svc.cluster.local"
-          value: "outside-es.szjz.svc.cluster.local"
+          value: "elasticsearch"
+          #value: "outside-es.szjz.svc.cluster.local"
         - name: FLUENT_ELASTICSEARCH_PORT
           value: "9200"
         volumeMounts:

@@ -14,11 +14,12 @@ spec:
     spec:
       containers:
       - name: kibana
-        image: cr.speakin.mobi/k8s/kibana:7.5.1  # use kibana:7.5.1 images, note: env settings
+        image: kibana:6.5.4
+        #image: cr.speakin.mobi/k8s/kibana:7.5.1  # use kibana:7.5.1 images, note: env settings
         env:
         - name: ELASTICSEARCH_HOSTS
-          value: http://outside-es.szjz.svc.cluster.local:9200
-          #value: http://elasticsearch:9200
+          #value: http://outside-es.szjz.svc.cluster.local:9200
+          value: http://elasticsearch.kube-system.svc.cluster.local:9200
           #value: http://elasticsearch.monitor.svc.cluster.local:9200
         #- name: XPACK_SECURITY_ENABLED
         #  value: "true"
