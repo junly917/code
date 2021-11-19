@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+      - name: logs
+        emptyDir: {}
+      containers:
+
+      - image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/nginx/
+        resources:
+          requests:
+            cpu: "80m"
+            memory: "100Mi"
+          limits:
+            cpu: "800m"
+            memory: "1024Mi"
+      - image: busybox
+        name: filebeat
+        volumeMounts:
+        - name: logs
+          mountPath: /data
+        command: 
+        - '/bin/sh'
+        - '-c'
+        - 'tail -f /dev/null'
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      nodeSelector:
+        speakin/gpu: nvidia
+      tolerations:
+      - key: node-type
+        operator: Equal
+        effect: NoSchedule
+        value: gpu
