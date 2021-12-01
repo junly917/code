@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jz-monitor
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: jz-monitor
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: jz-monitor
+    spec:
+      containers:
+      - image: cr.speakin.mobi/jz/monitor
+        imagePullPolicy: Always
+        name: monitor
+        command: ["sleep", "10000"]
+        readinessProbe:
+          exec:
+            command:   # 健康状态检查的命令，如果命令的执行结果不为0, 表示失败, 存活探针失败后Pod会一直尝试重启操作
+            - "wget"
+            - "http://localhost:5000 -o /dev/null"
+          initialDelaySeconds: 5  # 执行第一个探测之前等待5秒
+          periodSeconds: 5   # kubelet每5秒执行一次活跃度探测
+        livenessProbe:
+          exec:
+            command:    # 健康状态检查的命令，如果命令的执行结果不为0, 表示失败, 存活探针失败后Pod会一直尝试重启操作
+            - ps axu|grep jz_monitor
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1  #探测超时时间
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

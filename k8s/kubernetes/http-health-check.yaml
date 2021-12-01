@@ -1,0 +1,53 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jz-monitor
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: jz-monitor
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: jz-monitor
+    spec:
+      containers:
+      - image: cr.speakin.mobi/jz/monitor
+        imagePullPolicy: Always
+        name: monitor
+        command: ["python"]
+        args: 
+        - "/jz_monitor/jz_monitor.py" 
+        - "--promaddr"
+        - "http://192.168.23.1:9090"
+        - "--job"
+        - "kube-pods"
+        - "--namespace"
+        - "szjz"
+        - "--ceph" 
+        - "192.168.23.1:9128"
+        - "--mongo" 
+        - "192.168.23.21:9216"
+        readinessProbe:
+          httpGet:    # httpget 方法， 需要指定path 和port, 如果失败则会显示：Readiness probe failed: 
+            path: /
+            port: 5001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe: # httpget 方法， 需要指定path 和port, 如果失败则会显示：  Liveness probe failed: Get
+          httpGet:
+            path: /
+            port: 5001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

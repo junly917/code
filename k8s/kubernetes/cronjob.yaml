@@ -1,0 +1,38 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: update-last-time
+spec:
+  concurrencyPolicy: Allow   # 一个周期内pod中的任务没有被执行完, 再次达到执行的操作
+  # Allow，默认情况，Job可以同时存在
+  # Forbid,不会创建新的Pod, 创建周期被跳过 
+  # Replace 新生产的Job会替换旧的没有执行完的Job
+
+  failedJobsHistoryLimit: 1   # 失败时使用kubectl get pods 中显示几个pods
+  jobTemplate:
+    metadata:
+      name: update-last-time
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - python3
+            - /scripts/scripts.py
+            image: cr.xxx.xx/k8s/python3-cron:v1.0
+            imagePullPolicy: Always
+            name: update-last-time
+            volumeMounts:
+            - mountPath: /scripts/
+              name: update-last-time
+          dnsPolicy: ClusterFirst
+          restartPolicy: OnFailure
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - configMap:
+              defaultMode: 420
+              name: update-last-time
+            name: update-last-time
+  schedule: 0 0 */1 * *   # crontab 语法, 
+  successfulJobsHistoryLimit: 1   # 成功时使用kubectl get pods 中显示几个pods
+  suspend: false
