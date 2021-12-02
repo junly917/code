@@ -1,0 +1,69 @@
+pipeline {
+    environment{
+        appName="spring-boot-helloworld"
+        appVersion = "v0.9.0"
+        Registry="cr.speakin.mobi/test/"
+    }
+    
+    def myRepo = checkout scm
+    def gitCommit = myRepo.GIT_COMMIT
+    def gitBranch = myRepo.GIT_BRANCH
+    def imageTag = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+    def dockerRegistryUrl = "registry.qikqiak.com"
+    def imageEndpoint = "course/polling-api"
+    def image = "${dockerRegistryUrl}/${imageEndpoint}"
+    
+    agent {
+        kubernetes(inheritFrom: 'java-project')
+    }
+
+    stages {
+        stage('Clone') {
+            steps {
+                container("baseimg"){
+                    echo "Clone"
+                    git credentialsId: 'code.speakin.mobi/root', url: 'git@code.speakin.mobi:opsgroup/java.git' 
+                    sh 'git branch && hostname'
+                    sh """
+                        image: ${image}
+                        imagetag: ${imageTag}
+                        gitCommit: ${gitCommit}
+                        
+                    """
+                }
+                
+            }
+        }
+        stage("Code Check"){
+            steps {
+                container("baseimg"){
+                    echo "Code Check"
+                    sh 'hostname'
+                }
+            }
+        }
+        stage("maven"){
+            steps {
+                container("maven") {
+                    sh 'hostname && mvn clean test package '
+                }
+            }   
+        }
+        stage("docker"){
+            steps {
+                container("docker") {
+                    script {
+                        dockerImage=docker.build 
+                    }
+                }
+            }
+        }
+        stage("kubectl"){
+            steps {
+                container("kubectl") {
+                    sh 'hostname && kubectl version&& ls -al /root/.kube/'
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,8 @@
+pipeline {
+    def myRepo = checkout scm
+    
+    agent{
+        kubernetes(inheritFrom: 'java-project')
+    }
+
+}
