@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: binpack-1
+  labels:
+    app: binpack-1
+
+spec:
+  replicas: 1
+  serviceName: "binpack-1"
+  podManagementPolicy: "Parallel"
+  selector: # define how the deployment finds the pods it manages
+    matchLabels:
+      app: binpack-1
+  template: # define the pods specifications
+    metadata:
+      labels:
+        app: binpack-1
+        #aliyun.com/gpu-count: "4"
+    spec:
+      containers:
+      - name: binpack-1
+        env: 
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        image: cheyang/gpu-player:v2
+        resources:
+          limits:
+            # GiB
+            aliyun.com/gpu-mem: 8
