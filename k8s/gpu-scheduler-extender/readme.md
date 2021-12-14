@@ -182,6 +182,9 @@ spec:
       containers:
       - name: binpack-1
         image: cheyang/gpu-player:v2
+        #env: 
+        #- name: NVIDIA_VISIBLE_DEVICES
+        #  value: "1,3"  # 指定使用1, 3号卡
         resources:
           limits:
             # GiB  需要指定此pod需要多少的显存, 分配完之后可以使用nvidia-smi查看
